@@ -5,8 +5,9 @@
 #include<Windows.h>
 #include <cctype>
 #include <algorithm>
+#include<vector>
 using namespace std;
-
+using vector3d = vector<vector<vector<int>>>;
 template <typename T>
 string toString(T val) {
 	ostringstream oss;					//открытие строкового потока
@@ -18,12 +19,14 @@ public:
 	Month(string str) {					//в скобках выполняется код при объявление класса
 		for (int i = 0; i < 12; ++i) {
 			day[i] = new string * [count_day[i]];
-			year[i] = new int* [count_day[i]];
+			numb[i] = new int* [count_day[i]];
+			
 		}
 		//loadFromFile(str);				//загрузка с файла
 	}
-	/*void delEvent(int num, string month_t) {		//удаление события (номер дня; месяц (название))
-		if (validator(num + 1, month_t)) {				//проверка на валидность числа
+	/*void delEvent(string month_t, int num_d, string time) {		//удаление события (номер дня; месяц (название))
+		convertTime(time);
+		if ((validator_d(num_d, month_t)) && (validator_t(hour, minute))) {				//проверка на валидность числа
 			string month = setReg(month_t);				//функция установки спец регистра (первая большая, а остальные маленькие)
 			int tmp = getMonthNum(month) - 1;			//определить номер месяца
 			if (!day[tmp][num - 1].empty()) {			//если в этот день есть событие, то работаем
@@ -43,26 +46,14 @@ public:
 			}
 		}
 	}*/
-	void setEvent(int num_d, int time_e, string event, string month) {		//добавление события (номер дня; событие; месяц)
-		if (validator(num_d, month)) {
-			string month = setReg(month);					//функция установки спец регистра (первая большая, а остальные маленькие)
-			int month_n = (getMonthNum(month) - 1);				//определить номер месяца
+	void setEvent(int num_d, string time_e, string event, string month) {		//добавление события (номер дня; событие; месяц)
+		convertTime(time_e);
+		if ((validator_d(num_d, month))&&(validator_t(hour, minute))) {
+			string month_t = setReg(month);					//функция установки спец регистра (первая большая, а остальные маленькие)
+			int month_n = (getMonthNum(month_t) - 1);				//определить номер месяца
 			getArray(month_n, num_d, time_e, event);
-			/*/day[tmp][num] = event;
-			getNumberArray(num, tmp);
-			for (int i = 0; i < 12; ++i) {
-				if (num_month[i] == tmp) {				//поиск прошлой записи такого месяца
-					flag = true;
-					break;
-				}
-			}
-			if (!flag) {								//если такого месяца не было, то делаем новую запись
-				++tmp_tmp;
-				num_month[tmp_tmp] = tmp;
-			}
-			++numb;
-			index[tmp][num] = numb;*/
 		}
+		flag = true;
 	}
 void showMonths() {			//вывод месяцев
 	int tmp = 0;			//счетчи кол-ва дней в недели, он не должен быть больше 7
@@ -84,8 +75,10 @@ void showMonths() {			//вывод месяцев
 				tmp = 0;		//обнуляем
 			}
 			++tmp;
-
-			cout << year[q][i] << "\t";								//просто выводим номер дня
+			if (count_e[q][i][0] == 0)
+				cout << year[q][i] << "\t";								//просто выводим номер дня
+			else
+				cout << year[q][i] << "*";
 		}
 		cout << "\n\n";													//после каждого месяца два перевода строки
 		tmp2 = tmp;														//отступ у нового месяца будет = количеству дней в последней неделе у предыдущего
@@ -138,15 +131,51 @@ string setReg(string tmp) {								//установка регистра (первая большая, а остал
 	}
 	return tmp;											//вернуть строку
 }
-private:
-	void getArray(int month_n, int day_n, int time, string event) {
-		
+void showEvents() {
+	if (flag) {
+		cout << "#####";
+		for (int q = 0; q < 12; ++q) {
+			for (int i = 0; i < count_day[q]; ++i) {
+				for (int j = 0; j < count_e[q][i][0]; ++j) {
+					cout << q + 1 << '.' << i + 1 << ". " << numb[q][i][j] / 100 << ":" << numb[q][i][j] % 100 << "---" << day[q][i][j] << endl;
+				}
+
+			}
+		}
+
+
+		cout << "#####";
 	}
-	/*void setMonth() {									//создание массива с днями
+}
+private:
+	void getArray(int month_n, int day_n, string time, string event) {
+		int* int_arr = new int[count_e[month_n][day_n - 1][0]];
+		int_arr[0] = 0;
+		string* str_arr = new string[count_e[month_n][day_n - 1][0]];
+		int tmp = hour * 100 + minute;
+		for (int i = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
+			int_arr[i] = numb[month_n][day_n - 1][i];
+			str_arr[i] = day[month_n][day_n - 1][i];
+		}
+		++count_e[month_n][day_n - 1][0];
+		numb[month_n][day_n - 1] = new int[count_e[month_n][day_n - 1][0]];
+		day[month_n][day_n - 1] = new string[count_e[month_n][day_n - 1][0]];
+		for (int i = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
+			if (tmp < int_arr[i]) {
+				numb[month_n][day_n - 1][i] = tmp;
+				day[month_n][day_n - 1][i] = event;
+			}
+			else {
+				numb[month_n][day_n - 1][i] = int_arr[i];
+				day[month_n][day_n - 1][i] = str_arr[i];
+			}
+		}
+	}
+	void setMonth() {									//создание массива с днями
 		for (int q = 0; q < 12; ++q)					//12 месяцев
 			for (int i = 0; i < count_day[q]; ++i)		//устанавливается кол-во дней по умолчанию
 				year[q][i] = i + 1;						//заполнение ячеек
-	}*/
+	}
 	/*void loadFromFile(string str) {										//загрузка из файла
 		setMonth();														//заполнение массивов месяцев с датами
 		ifstream inputFile(str.c_str());								//если файл с названием года есть, то читать
@@ -186,6 +215,13 @@ private:
 			}
 		}
 	}*/
+	void convertTime(string time) {
+		string str_h, str_m;
+		(str_h = time[0]) += time[1];
+		(str_m = time[3]) += time[4];
+		hour = atoi(str_h.c_str());
+		minute = atoi(str_m.c_str());
+	}
 	int searchOffestVisYear(int a, int year) {			//поиск индекса для високосного года
 		int tmp = a % 100;				//последние две цифры для поиска по таблице
 		int i, max, j;
@@ -211,13 +247,17 @@ private:
 		}
 	}
 
-	bool validator(int num, string month) {			//проверка валидности числа
+	bool validator_d(int num, string month) {			//проверка валидности числа
 		int count = count_day[getMonthNum(month) - 1];		//кол-ва дней в месяце
 		if ((num <= count) && (num > 0)) return true;
 		else
 			return false;
 	}
-
+	bool validator_t(int h, int m) {
+		if ((hour >= 0) && (hour <= 23) && (minute >= 0) && (minute <= 59)) return true;
+		else
+			return false;
+	}
 
 	int getMonthNum(string s) {									//определение номера месяца
 		if (s == "Январь") return 1;
@@ -256,9 +296,13 @@ private:
 						 {68, 76, 80, 84, 88, 92, 96}
 	}; 									//таблица с високосными годами и соответствующими индексами			
 	string*** day = new string * *[12];					//массив с событиями [номер месяца] [номер дня]
-	int*** year = new int** [12];					//массив с номерами дней [номер месяца] [номер дня]
+	int*** numb = new int** [12];					//массив с номерами дней [номер месяца] [номер дня]
+	int year[12][31];
 	int x;								//число отступа
+	bool flag = false;
 	int num_year;						//номер введенного года
+	int count_e[12][31][1] = { 0 };
+	int hour, minute;
 	int count_day[12] = { 31, 28,31,30,31,30,31,31,30,31,30,31 };		//кол-во дней в месяцах по умолчанию [номер месяца]
 	string month_name[12] = { "Январь", "Февраль","Март" ,"Апрель","Май" ,"Июнь" ,"Июль" ,"Август" ,"Сентябрь" ,"Октябрь","Ноябрь", "Декабрь" };	//массив названий месяцев [номер месяца]
 
@@ -279,44 +323,34 @@ int main() {
 		tmp += ".txt";							//прибавка к году ".txt" для последующего создания файла
 		Month month(tmp);						//объявление класса с вводом выбранного года						
 		month.setYear(year);					//создание года (определение отступа)
-		while (true) {	/*						//малый цикл программы
+		while (true) {							//малый цикл программы
 			system("cls");						//очистка консоли
 			month.showMonths();					//вывод месяцев
-			string tmp_str, tmp_str2;			//ввод команд; ввод месяца
+			string tmp_str, tmp_str2, time;			//ввод команд; ввод месяца
 			int tmp_int;						//номер дня
 			month.showEvents();					//вывод событий
-			cout << "Чтобы редактировать события, введите => Редактировать\nЧтобы изменить год, введите => Смена\nЧтобы выйти, введите любой символ\n\n";
+			cout << "add\n";
 			cin >> tmp_str;
 			tmp_str = month.setReg(tmp_str);		//функция установки спец регистра (первая большая, а остальные маленькие)
-			if (tmp_str == "Редактировать") {
-				cout << "\nЧтобы удалить событие, введите => Удалить\nЧтобы добавить или изменить событие, введите => Добавить\n\n";
-				cin >> tmp_str;
-				tmp_str = month.setReg(tmp_str);	//функция установки спец регистра (первая большая, а остальные маленькие)
-				if (tmp_str == "Удалить") {
-					cout << "\nВыберите месяц\n";
-					cin >> tmp_str;
-					cout << "\nВыберите день\n";
-					cin >> tmp_int;
-					month.delEvent(tmp_int, tmp_str);		//функция удаления события
-				}
-				else
-					if (tmp_str == "Добавить") {
-						cout << "\nВыберите месяц\n";
-						cin >> tmp_str2;
-						cout << "\nВыберите день\n";
-						cin >> tmp_int;
-						cout << "\nВведите событие\n";
-						cin.ignore();
-						getline(cin, tmp_str);
-						tmp_str2 = month.setReg(tmp_str2);
-						month.setEvent(tmp_int, tmp_str, tmp_str2);			//добавление события
-					}
+			if (tmp_str == "Add") {
+				cout << "\n месяц\n";
+				cin >> tmp_str2;
+				cout << "\n день\n";
+				cin >> tmp_int;
+				cout << "\nвремя\n";
+				cin >> time;
+				cout << "\nВведите событие\n";
+				cin.ignore();
+				getline(cin, tmp_str);
+				tmp_str2 = month.setReg(tmp_str2);
+				month.setEvent(tmp_int, time, tmp_str, tmp_str2);			//добавление события
+
 			}
 			else
 				if (tmp_str == "Смена") break;
 				else
 					return 0;
-			month.backup();							//бэкап (сохранение в файл)*/
+			//month.backup();							//бэкап (сохранение в файл)
 		}
 	}
 	return 0;

@@ -5,9 +5,7 @@
 #include<Windows.h>
 #include <cctype>
 #include <algorithm>
-#include<vector>
 using namespace std;
-using vector3d = vector<vector<vector<int>>>;
 template <typename T>
 string toString(T val) {
 	ostringstream oss;					//открытие строкового потока
@@ -20,15 +18,15 @@ public:
 		for (int i = 0; i < 12; ++i) {
 			day[i] = new string * [count_day[i]];
 			numb[i] = new int* [count_day[i]];
-			
+
 		}
 		//loadFromFile(str);				//загрузка с файла
 	}
 	/*void delEvent(string month_t, int num_d, string time) {		//удаление события (номер дня; месяц (название))
 		convertTime(time);
 		if ((validator_d(num_d, month_t)) && (validator_t(hour, minute))) {				//проверка на валидность числа
-			string month = setReg(month_t);				//функция установки спец регистра (первая большая, а остальные маленькие)
-			int tmp = getMonthNum(month) - 1;			//определить номер месяца
+			
+			int tmp = getMonthNum(month_t) - 1;			//определить номер месяца
 			if (!day[tmp][num - 1].empty()) {			//если в этот день есть событие, то работаем
 				for (int i = 0; i < numb; ++i) {		//поиск нужного дня в зависимости от очереди его добавления
 					if (number[tmp][i] + 1 == num) {	//если это нужный день, то удаляем упоминания об событии
@@ -48,105 +46,116 @@ public:
 	}*/
 	void setEvent(int num_d, string time_e, string event, string month) {		//добавление события (номер дня; событие; месяц)
 		convertTime(time_e);
-		if ((validator_d(num_d, month))&&(validator_t(hour, minute))) {
-			string month_t = setReg(month);					//функция установки спец регистра (первая большая, а остальные маленькие)
-			int month_n = (getMonthNum(month_t) - 1);				//определить номер месяца
+		int month_n = (getMonthNum(month) - 1);
+		if ((validator_d(num_d, month)) && (validator_t(hour, minute)) && (month_n >= 0)) {
 			getArray(month_n, num_d, time_e, event);
+			flag = true;
 		}
-		flag = true;
+		
 	}
-void showMonths() {			//вывод месяцев
-	int tmp = 0;			//счетчи кол-ва дней в недели, он не должен быть больше 7
-	cout << "Выбран год -  " << num_year << "\n\n";
-	int tmp2 = x;					//временная переменная отступов, каждый месяц отступ меняется, но чтоб основную не трогать
-	for (int q = 0; q < 12; ++q) {
-		if (tmp2 >= 7) tmp2 -= 7;				//если отступ вышел больше "7", то он как бы переходит в следующую неделю и нужно вычитать 7 
-		else if (tmp2 < 0) tmp2 += 7;			//если меньше, то это как бы предыдущая, тут прибавляем 7
-		cout << "\n" << month_name[q] << "\n";
-		cout << "Пн\tВт\tСр\tЧт\tПт\tСб\tВс\n\n";
-
-		for (int w = 0; w < tmp2; ++w) {		//вывод нужного ко-ва отступов (один отступ = один таб)
-			cout << " \t";
-			++tmp;								//табы тоже считаются как день
-		}
-		for (int i = 0; i < count_day[q]; ++i) {
-			if (tmp == 7) {		//если 7 дней, то
-				cout << "\n";	//делаем перевод строки и
-				tmp = 0;		//обнуляем
-			}
-			++tmp;
-			if (count_e[q][i][0] == 0)
-				cout << year[q][i] << "\t";								//просто выводим номер дня
-			else
-				cout << year[q][i] << "*";
-		}
-		cout << "\n\n";													//после каждого месяца два перевода строки
-		tmp2 = tmp;														//отступ у нового месяца будет = количеству дней в последней неделе у предыдущего
-		tmp = 0;														//кол-во зануляем
-	}
-}
-
-
-/*void backup() {										//сохранение
-	string tmp = toString(num_year);
-	tmp += ".txt";
-	ofstream backupFile(tmp, ios_base::trunc);		//создаем файл с названием года
-	for (int q = 0; q < 12; ++q) {
-		if (num_month[q] != -1) {					//сохраняем только те дни, в которые добавляли события
-			backupFile << "\n!" << month_name[num_month[q]] << endl;		//название месяца("!" означает что этот месяц впервые)
-			for (int i = 0; i < count_events[num_month[q]]; ++i)
-				if (i != 0)		//если на этот месяц больше одного события, то
-					backupFile << endl << "?" << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];		//ставим "?" и сохраняем
-				else
-					backupFile << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];
-		}
-		else
-			break;
-	}
-	backupFile.close();								//закрываем файл
-}*/
-void setYear(int year) {			//создание года и определение отступа
-	bool flag = false;
-	int near_vis_year;				//ближайший меньший високосный год
-	num_year = year;
-	while (!flag) {
-		if ((year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))) flag = true;		//пока это не високосный год
-		else
-			--year;																			//отнимать один год
-	}
-	near_vis_year = year;
-	int tmp = searchOffestVisYear(near_vis_year, near_vis_year / 100);		//ввод в функцию для определения индекса года ближайший меньший високосный год и столетие 
-	int raz = num_year - near_vis_year;										//разность между начальным годом и его високосным
-	if (near_vis_year == num_year) {										//если високосный, то 
-		x = (tmp + raz) - 2;												//отступ находится суммой разности и индекса, но нужно вычесть 2 (просто потому что)
-		count_day[1] = 29;													//и в феврале 29 дней
-	}
-	else																	//иначе
-		x = (tmp + raz) - 1;												//из отступа вычетаем только 1 (тоже просто потому что)
-}
-string setReg(string tmp) {								//установка регистра (первая большая, а остальные маленькие)
-	tmp[0] = toupper(tmp[0]);							//первая буква заглавная
-	for (int i = 1; i < tmp.size(); ++i) {
-		tmp[i] = tolower(tmp[i]);						//остальные все маленькие
-	}
-	return tmp;											//вернуть строку
-}
-void showEvents() {
-	if (flag) {
-		cout << "\n#####\n";
+	void showMonths() {			//вывод месяцев
+		int tmp = 0;			//счетчи кол-ва дней в недели, он не должен быть больше 7
+		cout << "Выбран год -  " << num_year << "\n\n";
+		int tmp2 = x;					//временная переменная отступов, каждый месяц отступ меняется, но чтоб основную не трогать
 		for (int q = 0; q < 12; ++q) {
-			for (int i = 0; i < count_day[q]; ++i) {
-				for (int j = 0; j < count_e[q][i][0]; ++j) {
-					cout << i + 1 << '.' << q + 1 << ". " << numb[q][i][j] / 100 << ":" << numb[q][i][j] % 100 << "---" << day[q][i][j] << endl;
-				}
+			if (tmp2 >= 7) tmp2 -= 7;				//если отступ вышел больше "7", то он как бы переходит в следующую неделю и нужно вычитать 7 
+			else if (tmp2 < 0) tmp2 += 7;			//если меньше, то это как бы предыдущая, тут прибавляем 7
+			cout << "\n" << month_name[q] << "\n";
+			cout << "Пн\tВт\tСр\tЧт\tПт\tСб\tВс\n\n";
 
+			for (int w = 0; w < tmp2; ++w) {		//вывод нужного ко-ва отступов (один отступ = один таб)
+				cout << " \t";
+				++tmp;								//табы тоже считаются как день
 			}
+			for (int i = 0; i < count_day[q]; ++i) {
+				if (tmp == 7) {		//если 7 дней, то
+					cout << "\n";	//делаем перевод строки и
+					tmp = 0;		//обнуляем
+				}
+				++tmp;
+				if (count_e[q][i][0] == 0)
+					cout << year[q][i] << "\t";								//просто выводим номер дня
+				else
+					cout << year[q][i] << "*\t";
+			}
+			cout << "\n\n";													//после каждого месяца два перевода строки
+			tmp2 = tmp;														//отступ у нового месяца будет = количеству дней в последней неделе у предыдущего
+			tmp = 0;														//кол-во зануляем
 		}
-
-
-		cout << "\n#####\n";
 	}
-}
+
+
+	/*void backup() {										//сохранение
+		string tmp = toString(num_year);
+		tmp += ".txt";
+		ofstream backupFile(tmp, ios_base::trunc);		//создаем файл с названием года
+		for (int q = 0; q < 12; ++q) {
+			if (num_month[q] != -1) {					//сохраняем только те дни, в которые добавляли события
+				backupFile << "\n!" << month_name[num_month[q]] << endl;		//название месяца("!" означает что этот месяц впервые)
+				for (int i = 0; i < count_events[num_month[q]]; ++i)
+					if (i != 0)		//если на этот месяц больше одного события, то
+						backupFile << endl << "?" << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];		//ставим "?" и сохраняем
+					else
+						backupFile << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];
+			}
+			else
+				break;
+		}
+		backupFile.close();								//закрываем файл
+	}*/
+	void setYear(int year) {			//создание года и определение отступа
+		bool flag = false;
+		int near_vis_year;				//ближайший меньший високосный год
+		num_year = year;
+		while (!flag) {
+			if ((year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0))) flag = true;		//пока это не високосный год
+			else
+				--year;																			//отнимать один год
+		}
+		near_vis_year = year;
+		int tmp = searchOffestVisYear(near_vis_year, near_vis_year / 100);		//ввод в функцию для определения индекса года ближайший меньший високосный год и столетие 
+		int raz = num_year - near_vis_year;										//разность между начальным годом и его високосным
+		if (near_vis_year == num_year) {										//если високосный, то 
+			x = (tmp + raz) - 2;												//отступ находится суммой разности и индекса, но нужно вычесть 2 (просто потому что)
+			count_day[1] = 29;													//и в феврале 29 дней
+		}
+		else																	//иначе
+			x = (tmp + raz) - 1;												//из отступа вычетаем только 1 (тоже просто потому что)
+		setMonth();
+	}
+	string setReg(string tmp) {								//установка регистра (первая большая, а остальные маленькие)
+		if (tmp[0] == 'я') tmp[0] = 'Я';
+		tmp[0] = toupper(tmp[0]);							//первая буква заглавная
+
+		for (int i = 1; i < tmp.size(); ++i) {
+			tmp[i] = tolower(tmp[i]);						//остальные все маленькие
+		}
+		return tmp;											//вернуть строку
+	}
+	void showEvents() {
+		if (flag) {
+			cout << "\n#####\n";
+			
+			for (int q = 0; q < 12; ++q) {
+				string tmp = { "" };
+				for (int i = 0; i < count_day[q]; ++i) {
+					string tmp2 = { "" };
+					for (int j = 0; j < count_e[q][i][0]; ++j) {
+						string tmp3 = { "" }, tmp4 = { "" };
+						(q < 9) ? (tmp += "0") += toString(q + 1) : tmp += (q + 1);
+						(i < 9) ? (tmp2 += "0") += toString(i + 1) : tmp2 += (i + 1);
+						(numb[q][i][j] / 100 < 9) ? (tmp3 += "0") += toString(numb[q][i][j] / 100 ) : tmp3 += (numb[q][i][j] / 100 );
+						(numb[q][i][j] % 100 < 9) ? (tmp4 += "0") += toString(numb[q][i][j] % 100 ) : tmp4 += (numb[q][i][j] % 100 );
+						cout << tmp2 << '.' << tmp << " " << tmp3 << ":" << tmp4 << " --- " << day[q][i][j] << endl;
+					}
+
+				}
+			}
+
+
+			cout << "#####\n";
+		}
+	}
 private:
 	void getArray(int month_n, int day_n, string time, string event) {
 		int* int_arr = new int[count_e[month_n][day_n - 1][0]];
@@ -161,16 +170,17 @@ private:
 		++count_e[month_n][day_n - 1][0];
 		numb[month_n][day_n - 1] = new int[count_e[month_n][day_n - 1][0]];
 		day[month_n][day_n - 1] = new string[count_e[month_n][day_n - 1][0]];
-		for (int i = 0, j=0; i < count_e[month_n][day_n - 1][0]; ++i) {
+		for (int i = 0, j = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
 			if (((tmp < int_arr[j]) || (count_e[month_n][day_n - 1][0] == 1)) && (flag == false)) {
 				numb[month_n][day_n - 1][i] = tmp;
 				day[month_n][day_n - 1][i] = event;
 				flag = true;
 			}
 			else {
-				++j;
+
 				numb[month_n][day_n - 1][i] = int_arr[j];
 				day[month_n][day_n - 1][i] = str_arr[j];
+				++j;
 			}
 		}
 	}
@@ -219,9 +229,16 @@ private:
 		}
 	}*/
 	void convertTime(string time) {
-		string str_h, str_m;
-		(str_h = time[0]) += time[1];
-		(str_m = time[3]) += time[4];
+		string str_h = { "" }, str_m = { "" };
+		bool flag = true;
+		for (int i = 0; i < time.size(); ++i) {
+			if (time[i] == ':') {
+				flag = false;
+				++i;
+			}
+			if (flag) str_h += time[i];
+			else str_m += time[i];
+		}
 		hour = atoi(str_h.c_str());
 		minute = atoi(str_m.c_str());
 	}
@@ -320,8 +337,9 @@ int main() {
 		system("color 70");						//цвет консоли (белый фон и черный шрифт)
 		system("cls");							//очистка консоли
 		int year = 0;
-		cout << "Введите год\n";
-		cin >> year;
+		/*cout << "Введите год\n";
+		cin >> year;*/
+		year = 2021;
 		string tmp = toString(year);			//преобразование года в строку для создания файла
 		tmp += ".txt";							//прибавка к году ".txt" для последующего создания файла
 		Month month(tmp);						//объявление класса с вводом выбранного года						
@@ -356,5 +374,6 @@ int main() {
 			//month.backup();							//бэкап (сохранение в файл)
 		}
 	}
+	
 	return 0;
 }

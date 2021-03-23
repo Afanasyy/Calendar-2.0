@@ -133,24 +133,25 @@ string setReg(string tmp) {								//установка регистра (перва€ больша€, а остал
 }
 void showEvents() {
 	if (flag) {
-		cout << "#####";
+		cout << "\n#####\n";
 		for (int q = 0; q < 12; ++q) {
 			for (int i = 0; i < count_day[q]; ++i) {
 				for (int j = 0; j < count_e[q][i][0]; ++j) {
-					cout << q + 1 << '.' << i + 1 << ". " << numb[q][i][j] / 100 << ":" << numb[q][i][j] % 100 << "---" << day[q][i][j] << endl;
+					cout << i + 1 << '.' << q + 1 << ". " << numb[q][i][j] / 100 << ":" << numb[q][i][j] % 100 << "---" << day[q][i][j] << endl;
 				}
 
 			}
 		}
 
 
-		cout << "#####";
+		cout << "\n#####\n";
 	}
 }
 private:
 	void getArray(int month_n, int day_n, string time, string event) {
 		int* int_arr = new int[count_e[month_n][day_n - 1][0]];
 		int_arr[0] = 0;
+		bool flag = false;
 		string* str_arr = new string[count_e[month_n][day_n - 1][0]];
 		int tmp = hour * 100 + minute;
 		for (int i = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
@@ -160,14 +161,16 @@ private:
 		++count_e[month_n][day_n - 1][0];
 		numb[month_n][day_n - 1] = new int[count_e[month_n][day_n - 1][0]];
 		day[month_n][day_n - 1] = new string[count_e[month_n][day_n - 1][0]];
-		for (int i = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
-			if (tmp < int_arr[i]) {
+		for (int i = 0, j=0; i < count_e[month_n][day_n - 1][0]; ++i) {
+			if (((tmp < int_arr[j]) || (count_e[month_n][day_n - 1][0] == 1)) && (flag == false)) {
 				numb[month_n][day_n - 1][i] = tmp;
 				day[month_n][day_n - 1][i] = event;
+				flag = true;
 			}
 			else {
-				numb[month_n][day_n - 1][i] = int_arr[i];
-				day[month_n][day_n - 1][i] = str_arr[i];
+				++j;
+				numb[month_n][day_n - 1][i] = int_arr[j];
+				day[month_n][day_n - 1][i] = str_arr[j];
 			}
 		}
 	}
@@ -329,10 +332,10 @@ int main() {
 			string tmp_str, tmp_str2, time;			//ввод команд; ввод мес€ца
 			int tmp_int;						//номер дн€
 			month.showEvents();					//вывод событий
-			cout << "add\n";
+			cout << "доб\n";
 			cin >> tmp_str;
 			tmp_str = month.setReg(tmp_str);		//функци€ установки спец регистра (перва€ больша€, а остальные маленькие)
-			if (tmp_str == "Add") {
+			if (tmp_str == "ƒоб") {
 				cout << "\n мес€ц\n";
 				cin >> tmp_str2;
 				cout << "\n день\n";

@@ -20,36 +20,35 @@ public:
 			numb[i] = new int* [count_day[i]];
 
 		}
-		//loadFromFile(str);				//загрузка с файла
+		loadFromFile(str);				//загрузка с файла
 	}
-	/*void delEvent(string month_t, int num_d, string time) {		//удаление события (номер дня; месяц (название))
+	void delEvent(string month_t, int num_d, string time) {		//удаление события (номер дня; месяц (название))
 		convertTime(time);
-		if ((validator_d(num_d, month_t)) && (validator_t(hour, minute))) {				//проверка на валидность числа
-			
-			int tmp = getMonthNum(month_t) - 1;			//определить номер месяца
-			if (!day[tmp][num - 1].empty()) {			//если в этот день есть событие, то работаем
-				for (int i = 0; i < numb; ++i) {		//поиск нужного дня в зависимости от очереди его добавления
-					if (number[tmp][i] + 1 == num) {	//если это нужный день, то удаляем упоминания об событии
-						day[tmp][num - 1] = { "" };
-						number[tmp][i] = 0;
-						if (count_events[tmp] > 1) for (i; i < count_events[tmp]; ++i) number[tmp][i] = number[tmp][i + 1];		//сдвигаем на удаленное событие
-						break;
+		int tmp = getMonthNum(month_t) - 1;			//определить номер месяца
+		if ((validator_d(num_d, tmp)) && (validator_t(hour, minute)) && (tmp >= 0)) {				//проверка на валидность 
+			int tmp2 = searchEvent(tmp, num_d, hour * 100 + minute);
+			if (tmp2 >= 0) {											//если в этот день есть событие, то работаем
+				day[tmp][num_d - 1][tmp2] = { "" };
+				numb[tmp][num_d - 1][tmp2] = -1;
+				if (count_e[tmp][num_d - 1][0] > 1) {
+					for (tmp2; tmp2 < count_e[tmp][num_d - 1][0]; ++tmp2) {
+						numb[tmp][num_d - 1][tmp2] = numb[tmp][num_d - 1][tmp2 + 1];
+						day[tmp][num_d - 1][tmp2] = day[tmp][num_d - 1][tmp2 + 1];
 					}
-				}
-				--numb;
-				++count_del;
-				--count_events[tmp];
-				if (count_events[tmp] == 0)
-					num_month[getLastRec()] = -1;		//если это было последнее событие в месяце, то удаляем запись об этом месяце
+				}		
+				--count;
+				--count_e[tmp][num_d - 1][0];	
+				num_month[tmp]--;
 			}
 		}
-	}*/
+	}
 	void setEvent(int num_d, string time_e, string event, string month) {		//добавление события (номер дня; событие; месяц)
 		convertTime(time_e);
 		int month_n = (getMonthNum(month) - 1);
-		if ((validator_d(num_d, month)) && (validator_t(hour, minute)) && (month_n >= 0)) {
+		if ((validator_d(num_d, month_n)) && (validator_t(hour, minute)) && (month_n >= 0)) {
 			getArray(month_n, num_d, time_e, event);
-			flag = true;
+			++count;
+			num_month[month_n]++;
 		}
 		
 	}
@@ -85,24 +84,24 @@ public:
 	}
 
 
-	/*void backup() {										//сохранение
+	void backup() {										//сохранение
 		string tmp = toString(num_year);
 		tmp += ".txt";
 		ofstream backupFile(tmp, ios_base::trunc);		//создаем файл с названием года
 		for (int q = 0; q < 12; ++q) {
-			if (num_month[q] != -1) {					//сохраняем только те дни, в которые добавляли события
-				backupFile << "\n!" << month_name[num_month[q]] << endl;		//название месяца("!" означает что этот месяц впервые)
-				for (int i = 0; i < count_events[num_month[q]]; ++i)
-					if (i != 0)		//если на этот месяц больше одного события, то
-						backupFile << endl << "?" << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];		//ставим "?" и сохраняем
-					else
-						backupFile << number[num_month[q]][i] + 1 << " " << day[num_month[q]][number[num_month[q]][i]];
+			if (num_month[q] >0) {					//сохраняем только те дни, в которые добавляли события
+				for (int i = 0; i < count_day[q]; ++i) {
+					if (count_e[q][i][0] > 0) {
+						for (int j = 0; j < count_e[q][i][0]; ++j) {
+							backupFile << i + 1 << '.' << q + 1 << ';' << numb[q][i][j] / 100 << ':' << numb[q][i][j] % 100 << '-' << day[q][i][j]<<"\n";
+						}
+					}
+				}
 			}
-			else
-				break;
 		}
+		backupFile << '*';
 		backupFile.close();								//закрываем файл
-	}*/
+	}
 	void setYear(int year) {			//создание года и определение отступа
 		bool flag = false;
 		int near_vis_year;				//ближайший меньший високосный год
@@ -133,7 +132,7 @@ public:
 		return tmp;											//вернуть строку
 	}
 	void showEvents() {
-		if (flag) {
+		if (count>0) {
 			cout << "\n#####\n";
 			
 			for (int q = 0; q < 12; ++q) {
@@ -142,10 +141,10 @@ public:
 					string tmp2 = { "" };
 					for (int j = 0; j < count_e[q][i][0]; ++j) {
 						string tmp3 = { "" }, tmp4 = { "" };
-						(q < 9) ? (tmp += "0") += toString(q + 1) : tmp += (q + 1);
-						(i < 9) ? (tmp2 += "0") += toString(i + 1) : tmp2 += (i + 1);
-						(numb[q][i][j] / 100 < 9) ? (tmp3 += "0") += toString(numb[q][i][j] / 100 ) : tmp3 += (numb[q][i][j] / 100 );
-						(numb[q][i][j] % 100 < 9) ? (tmp4 += "0") += toString(numb[q][i][j] % 100 ) : tmp4 += (numb[q][i][j] % 100 );
+						(q < 9) ? (tmp += "0") += toString(q + 1) : tmp += toString(q + 1);
+						(i < 9) ? (tmp2 += "0") += toString(i + 1) : tmp2 += toString(i + 1);
+						(numb[q][i][j] / 100 < 9) ? (tmp3 += "0") += toString(numb[q][i][j] / 100 ) : tmp3 += toString(numb[q][i][j] / 100 );
+						(numb[q][i][j] % 100 < 9) ? (tmp4 += "0") += toString(numb[q][i][j] % 100 ) : tmp4 += toString(numb[q][i][j] % 100 );
 						cout << tmp2 << '.' << tmp << " " << tmp3 << ":" << tmp4 << " --- " << day[q][i][j] << endl;
 					}
 
@@ -157,6 +156,12 @@ public:
 		}
 	}
 private:
+	int searchEvent(int month, int day, int time) {
+		for (int i = 0; i < count_e[month][day - 1][0]; ++i) {
+			if (numb[month][day - 1][i] == time) return i;
+		}
+		return -1;
+	}
 	void getArray(int month_n, int day_n, string time, string event) {
 		int* int_arr = new int[count_e[month_n][day_n - 1][0]];
 		int_arr[0] = 0;
@@ -171,7 +176,7 @@ private:
 		numb[month_n][day_n - 1] = new int[count_e[month_n][day_n - 1][0]];
 		day[month_n][day_n - 1] = new string[count_e[month_n][day_n - 1][0]];
 		for (int i = 0, j = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
-			if (((tmp < int_arr[j]) || (count_e[month_n][day_n - 1][0] == 1)) && (flag == false)) {
+			if ((((tmp < int_arr[j]) && (int_arr[j] > 0)) || (count_e[month_n][day_n - 1][0] == 1)) && (flag == false)) {
 				numb[month_n][day_n - 1][i] = tmp;
 				day[month_n][day_n - 1][i] = event;
 				flag = true;
@@ -189,45 +194,57 @@ private:
 			for (int i = 0; i < count_day[q]; ++i)		//устанавливается кол-во дней по умолчанию
 				year[q][i] = i + 1;						//заполнение ячеек
 	}
-	/*void loadFromFile(string str) {										//загрузка из файла
-		setMonth();														//заполнение массивов месяцев с датами
+	void loadFromFile(string str) {										//загрузка из файла
+													//заполнение массивов месяцев с датами
 		ifstream inputFile(str.c_str());								//если файл с названием года есть, то читать
 		if (inputFile.is_open()) {										//если файл открылся
-			if (!inputFile.eof()) {										//если файл не дочитан до конца
-				int month = -1;											//номер месяца
-				int mon = -1;											//количество месяцев с событиями ;номер месяца для заполнения массива с месяцами в порядке добавления в них события (num_month)
-				while (!inputFile.eof()) {								//читать файл, пока не дошел до конца
-					char tmp2 = ' ';									//опознавательный знак; переменная для загрузки события ("!" - этот месяц впервые: "?" - этот месяц уже был и события записываются в него)
-					int tmp = 0;										//номер дня
-					string tmp_str = " ";								//название месяца
-					inputFile >> tmp2;
-					if (tmp2 == '!') {
-						inputFile >> tmp_str;							//чтение месяца
-						month = getMonthNum(tmp_str) - 1;				//определение номера месяца
-						inputFile >> tmp;								//чтение номера дня
-						inputFile.ignore();								//специальная команда для чистого чтения getline
-						getline(inputFile, day[month][tmp - 1]);		//чтение события из файла и запись в массив событий [номер месяца] [номер дня]
-						getNumberArray(tmp - 1, month);					//добавление нового номера дня в массив всех добавленных номеров дней с событиями
-						++numb;											//увеличение кол-ва событий
-						++mon;											//увеличение кол-ва месяцев, значит в файле пошел новый месяц
-						index[month][tmp - 1] = numb;					//добавление номера события в массив, когла все месяцы выводятся, дни с событиями выделяются
-																		//последовательным номером, обозначающий в какой последовательности добавляли это событие
-						num_month[mon] = month;							//добавление нового месяца в массив с месяцами у которых есть события
-																		//[последовательный номер, когда этот месяц впервые упомянулся]
+																		//количество месяцев с событиями ;номер месяца для заполнения массива с месяцами в порядке добавления в них события (num_month)
+			while (true) {								//читать файл, пока не дошел до конца
+				string str = { "" };
+				getline(inputFile, str);
+				if (str == "*") break;
+				else {
+					string day_s = { "" }, month_s = { "" }, time = { "" };
+					int day_i = 0, month = 0;
+					string event = { "" };
+					bool flag = true, flag2 = false, flag3 = false, flag4 = false, flag5 = false;
+					for (int i = 0; i < str.size(); ++i) {
+						if (str[i] == '.') {
+							day_i = atoi(day_s.c_str());
+							flag = false;
+							flag2 = true;
+							++i;
+						}
+						else if (str[i] == ';') {
+							month = atoi(month_s.c_str());
+							flag2 = false;
+							flag3 = true;
+							++i;
+						}
+
+						else if (str[i] == '-') {
+
+							flag3 = false;
+							flag4 = true;
+							++i;
+						}
+						if (flag) day_s += str[i];
+						if (flag2) month_s += str[i];
+						if (flag3)time += str[i];
+						if (flag4) {
+							for (i; i < str.size(); ++i) {
+								event += str[i];
+							}
+							break;
+						}
 					}
-					else if (tmp2 == '?') {
-						inputFile >> tmp;								//чтение номера дня
-						getline(inputFile, day[month][tmp - 1]);		//чтение события из файла и запись в массив событий [номер месяца] [номер дня]
-						getNumberArray(tmp - 1, month);					//добавление нового номера дня в массив всех добавленных номеров дней с событиями
-						++numb;											//увеличение кол-ва событий
-						index[month][tmp - 1] = numb;					//добавление номера события в массив, когла все месяцы выводятся, дни с событиями выделяются
-																		//последовательным номером, обозначающий в какой последовательности добавляли это событие
-					}
+					setEvent(day_i, time, event, month_name[month - 1]);
 				}
-				inputFile.close();										//закрытие читаемого файла
 			}
+				inputFile.close();										//закрытие читаемого файла
+			
 		}
-	}*/
+	}
 	void convertTime(string time) {
 		string str_h = { "" }, str_m = { "" };
 		bool flag = true;
@@ -267,8 +284,8 @@ private:
 		}
 	}
 
-	bool validator_d(int num, string month) {			//проверка валидности числа
-		int count = count_day[getMonthNum(month) - 1];		//кол-ва дней в месяце
+	bool validator_d(int num, int month) {			//проверка валидности числа
+		int count = count_day[month];		//кол-ва дней в месяце
 		if ((num <= count) && (num > 0)) return true;
 		else
 			return false;
@@ -319,8 +336,9 @@ private:
 	int*** numb = new int** [12];					//массив с номерами дней [номер месяца] [номер дня]
 	int year[12][31];
 	int x;								//число отступа
-	bool flag = false;
+	int count = 0;
 	int num_year;						//номер введенного года
+	int num_month[12] = { 0 };
 	int count_e[12][31][1] = { 0 };
 	int hour, minute;
 	int count_day[12] = { 31, 28,31,30,31,30,31,31,30,31,30,31 };		//кол-во дней в месяцах по умолчанию [номер месяца]
@@ -350,7 +368,7 @@ int main() {
 			string tmp_str, tmp_str2, time;			//ввод команд; ввод месяца
 			int tmp_int;						//номер дня
 			month.showEvents();					//вывод событий
-			cout << "доб\n";
+			cout << "доб / уд\n";
 			cin >> tmp_str;
 			tmp_str = month.setReg(tmp_str);		//функция установки спец регистра (первая большая, а остальные маленькие)
 			if (tmp_str == "Доб") {
@@ -367,11 +385,21 @@ int main() {
 				month.setEvent(tmp_int, time, tmp_str, tmp_str2);			//добавление события
 
 			}
+			else if (tmp_str == "Уд") {
+				cout << "\n месяц\n";
+				cin >> tmp_str2;
+				cout << "\n день\n";
+				cin >> tmp_int;
+				cout << "\nвремя\n";
+				cin >> time;
+				tmp_str2 = month.setReg(tmp_str2);
+				month.delEvent(tmp_str2, tmp_int, time);
+			}
 			else
 				if (tmp_str == "Смена") break;
 				else
 					return 0;
-			//month.backup();							//бэкап (сохранение в файл)
+			month.backup();							//бэкап (сохранение в файл)
 		}
 	}
 	

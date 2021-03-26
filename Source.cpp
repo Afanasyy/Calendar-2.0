@@ -31,12 +31,11 @@ public:
 				day[tmp][num_d - 1][tmp2] = { "" };
 				numb[tmp][num_d - 1][tmp2] = -1;
 				if (count_e[tmp][num_d - 1][0] > 1) {
-					for (tmp2; tmp2 < count_e[tmp][num_d - 1][0]; ++tmp2) {
+					for (tmp2; tmp2 < count_e[tmp][num_d - 1][0]-1; ++tmp2) {
 						numb[tmp][num_d - 1][tmp2] = numb[tmp][num_d - 1][tmp2 + 1];
 						day[tmp][num_d - 1][tmp2] = day[tmp][num_d - 1][tmp2 + 1];
 					}
-				}		
-				--count;
+				}	
 				--count_e[tmp][num_d - 1][0];	
 				num_month[tmp]--;
 			}
@@ -47,7 +46,7 @@ public:
 		int month_n = (getMonthNum(month) - 1);
 		if ((validator_d(num_d, month_n)) && (validator_t(hour, minute)) && (month_n >= 0)) {
 			getArray(month_n, num_d, time_e, event);
-			++count;
+			
 			num_month[month_n]++;
 		}
 		
@@ -80,6 +79,7 @@ public:
 			cout << "\n\n";													//после каждого месяца два перевода строки
 			tmp2 = tmp;														//отступ у нового месяца будет = количеству дней в последней неделе у предыдущего
 			tmp = 0;														//кол-во зануляем
+			showEvents(q);
 		}
 	}
 
@@ -131,27 +131,19 @@ public:
 		}
 		return tmp;											//вернуть строку
 	}
-	void showEvents() {
-		if (count>0) {
+	void showEvents(int month) {
+		if (num_month[month] > 0) {
 			cout << "\n#####\n";
-			
-			for (int q = 0; q < 12; ++q) {
-				string tmp = { "" };
-				for (int i = 0; i < count_day[q]; ++i) {
-					string tmp2 = { "" };
-					for (int j = 0; j < count_e[q][i][0]; ++j) {
-						string tmp3 = { "" }, tmp4 = { "" };
-						(q < 9) ? (tmp += "0") += toString(q + 1) : tmp += toString(q + 1);
-						(i < 9) ? (tmp2 += "0") += toString(i + 1) : tmp2 += toString(i + 1);
-						(numb[q][i][j] / 100 < 9) ? (tmp3 += "0") += toString(numb[q][i][j] / 100 ) : tmp3 += toString(numb[q][i][j] / 100 );
-						(numb[q][i][j] % 100 < 9) ? (tmp4 += "0") += toString(numb[q][i][j] % 100 ) : tmp4 += toString(numb[q][i][j] % 100 );
-						cout << tmp2 << '.' << tmp << " " << tmp3 << ":" << tmp4 << " --- " << day[q][i][j] << endl;
-					}
-
+			for (int i = 0; i < count_day[month]; ++i) {
+				for (int j = 0; j < count_e[month][i][0]; ++j) {
+					string tmp3 = { "" }, tmp4 = { "" }, tmp = { "" }, tmp2 = { "" };
+					(month < 9) ? (tmp += "0") += toString(month + 1) : tmp += toString(month + 1);
+					(i < 9) ? (tmp2 += "0") += toString(i + 1) : tmp2 += toString(i + 1);
+					(numb[month][i][j] / 100 < 9) ? (tmp3 += "0") += toString(numb[month][i][j] / 100) : tmp3 += toString(numb[month][i][j] / 100);
+					(numb[month][i][j] % 100 < 9) ? (tmp4 += "0") += toString(numb[month][i][j] % 100) : tmp4 += toString(numb[month][i][j] % 100);
+					cout << tmp2 << '.' << tmp << " " << tmp3 << ":" << tmp4 << " --- " << day[month][i][j] << endl;
 				}
 			}
-
-
 			cout << "#####\n";
 		}
 	}
@@ -164,8 +156,8 @@ private:
 	}
 	void getArray(int month_n, int day_n, string time, string event) {
 		int* int_arr = new int[count_e[month_n][day_n - 1][0]];
-		int_arr[0] = 0;
 		bool flag = false;
+		int last = count_e[month_n][day_n - 1][0];
 		string* str_arr = new string[count_e[month_n][day_n - 1][0]];
 		int tmp = hour * 100 + minute;
 		for (int i = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
@@ -176,7 +168,7 @@ private:
 		numb[month_n][day_n - 1] = new int[count_e[month_n][day_n - 1][0]];
 		day[month_n][day_n - 1] = new string[count_e[month_n][day_n - 1][0]];
 		for (int i = 0, j = 0; i < count_e[month_n][day_n - 1][0]; ++i) {
-			if ((((tmp < int_arr[j]) && (int_arr[j] > 0)) || (count_e[month_n][day_n - 1][0] == 1)) && (flag == false)) {
+			if (((tmp < int_arr[j]) || (count_e[month_n][day_n - 1][0] == 1) || (j == last)) && (flag == false)) {
 				numb[month_n][day_n - 1][i] = tmp;
 				day[month_n][day_n - 1][i] = event;
 				flag = true;
@@ -336,7 +328,6 @@ private:
 	int*** numb = new int** [12];					//массив с номерами дней [номер месяца] [номер дня]
 	int year[12][31];
 	int x;								//число отступа
-	int count = 0;
 	int num_year;						//номер введенного года
 	int num_month[12] = { 0 };
 	int count_e[12][31][1] = { 0 };
@@ -346,7 +337,6 @@ private:
 
 };
 int main() {
-
 	SetConsoleCP(1251);							//локализация консоли
 	SetConsoleOutputCP(1251);					//локализация консоли
 	setlocale(LC_ALL, "rus");					//добавляю русский язык
@@ -362,11 +352,12 @@ int main() {
 		Month month(tmp);						//объявление класса с вводом выбранного года						
 		month.setYear(year);					//создание года (определение отступа)
 		while (true) {							//малый цикл программы
-			system("cls");						//очистка консоли
+			system("cls");	
+				//очистка консоли
 			month.showMonths();					//вывод месяцев
 			string tmp_str, tmp_str2, time;			//ввод команд; ввод месяца
 			int tmp_int;						//номер дня
-			month.showEvents();					//вывод событий
+			//вывод событий
 			cout << "доб / уд\n";
 			cin >> tmp_str;
 			tmp_str = month.setReg(tmp_str);		//функция установки спец регистра (первая большая, а остальные маленькие)

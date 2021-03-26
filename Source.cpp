@@ -48,7 +48,7 @@ public:
 		int month_n;
 		if (identifyMonth(month)) month_n = stoi(month) - 1; else
 			month_n = (getMonthNum(month) - 1);
-		if ((validator_d(num_d, month_n)) && (validator_t(hour, minute)) && (month_n >= 0)) {
+		if ((validator_d(num_d, month_n)) && (validator_t(hour, minute)) && (month_n >= 0) && (searchEvent(month_n, num_d, hour * 100 + minute) < 0)) {
 			getArray(month_n, num_d, time_e, event);
 			num_month[month_n]++;
 		}
@@ -261,7 +261,7 @@ private:
 		string str_h = { "" }, str_m = { "" };
 		bool flag = true;
 		for (int i = 0; i < time.size(); ++i) {
-			if (time[i] == ':') {
+			if (!isdigit(time[i])) {
 				flag = false;
 				++i;
 			}
@@ -410,11 +410,11 @@ int main() {
 				month.setEvent(tmp_int, time, tmp_str, tmp_str2);			//добавление событи€
 			}
 			else if (tmp_str == "”") {
-				cout << "\t\n¬ведите мес€ц\n\t";
+				cout << "\n\t¬ведите мес€ц\n\t";
 				cin >> tmp_str2;
-				cout << "\t\n¬ведите день\n\t";
+				cout << "\n\t¬ведите день\n\t";
 				cin >> tmp_int;
-				cout << "\t\n¬ведите врем€\n\t";
+				cout << "\n\t¬ведите врем€\n\t";
 				cin >> time;
 				tmp_str2 = month.setReg(tmp_str2);
 				month.delEvent(tmp_str2, tmp_int, time);
